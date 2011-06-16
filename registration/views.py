@@ -177,10 +177,11 @@ def register(request, backend, success_url=None, form_class=None,
     argument.
     
     """
-    accept = request.META.get('HTTP_ACCEPT')
-    accept_json = bool(accept) and 'application/json' in accept
     json_response = lambda data: HttpResponse(json.dumps(data), mimetype='application/json')
     response_data = {'success':True}
+
+    accept = request.META.get('HTTP_ACCEPT')
+    accept_json = bool(accept) and 'application/json' in accept
 
     backend = get_backend(backend)
     if not backend.registration_allowed(request):
@@ -215,10 +216,11 @@ def register(request, backend, success_url=None, form_class=None,
         context[key] = callable(value) and value() or value
 
     if accept_json:
+        response_data['success'] = False
         if bool(form.errors):
-            response_data['success'] = False
             response_data['errors'] = [error for key in form.errors.keys() for error in form.errors[key]]
         return json_response(response_data)
+
     else:
         return render_to_response(template_name,
                                   {'form': form},

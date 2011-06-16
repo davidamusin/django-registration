@@ -27,10 +27,11 @@ from django.conf.urls.defaults import *
 
 from django.contrib.auth import views as auth_views
 
+from registration.auth_views import login as reg_auth_login
 
 urlpatterns = patterns('',
                        url(r'^login/$',
-                           auth_views.login,
+                           reg_auth_login,
                            {'template_name': 'registration/login.html'},
                            name='auth_login'),
                        url(r'^logout/$',

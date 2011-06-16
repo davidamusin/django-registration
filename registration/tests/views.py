@@ -80,7 +80,7 @@ class RegistrationViewTests(TestCase):
                                           'password2': 'swordfish'},
                                     **{'HTTP_ACCEPT':'application/json'})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(json.loads(response.content)['success'], True)
+        self.assertTrue(json.loads(response.content)['success'])
         self.assertEqual(RegistrationProfile.objects.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
 
@@ -115,7 +115,7 @@ class RegistrationViewTests(TestCase):
                                           'password2': 'bar'},
                                     **{'HTTP_ACCEPT':'application/json'})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(json.loads(response.content)['success'], False)
+        self.assertFalse(json.loads(response.content)['success'])
         self.assertTrue(u"The two password fields didn't match." in json.loads(response.content)['errors'])
         self.assertEqual(len(mail.outbox), 0)
 
@@ -152,7 +152,7 @@ class RegistrationViewTests(TestCase):
         """
         def assert_closed(response):
             self.assertEqual(response.status_code, 200)
-            self.assertEqual(json.loads(response.content)['success'], False)
+            self.assertFalse(json.loads(response.content)['success'])
             self.assertTrue(u"Registration is closed." in json.loads(response.content)['errors'])
 
         old_allowed = getattr(settings, 'REGISTRATION_OPEN', True)
