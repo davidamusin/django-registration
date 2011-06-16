@@ -1,5 +1,7 @@
 import datetime
 
+import simplejson as json
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import mail
@@ -65,6 +67,23 @@ class RegistrationViewTests(TestCase):
         self.assertEqual(RegistrationProfile.objects.count(), 1)
         self.assertEqual(len(mail.outbox), 1)
 
+    def test_registration_view_success_json(self):
+        """
+        A ``POST`` to the ``register`` view with valid data properly
+        creates a new user and returns a json object.
+
+        """
+        response = self.client.post(reverse('registration_register'),
+                                    data={'username': 'alice',
+                                          'email': 'alice@example.com',
+                                          'password1': 'swordfish',
+                                          'password2': 'swordfish'},
+                                    **{'HTTP_ACCEPT':'application/json'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.content)['success'], True)
+        self.assertEqual(RegistrationProfile.objects.count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+
     def test_registration_view_failure(self):
         """
         A ``POST`` to the ``register`` view with invalid data does not
@@ -80,6 +99,24 @@ class RegistrationViewTests(TestCase):
         self.failIf(response.context['form'].is_valid())
         self.assertFormError(response, 'form', field=None,
                              errors=u"The two password fields didn't match.")
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_registration_view_failure_json(self):
+        """
+        A ``POST`` to the ``register`` view with invalid data does not
+        create a user, and return json object with appropriate
+        error messages.
+
+        """
+        response = self.client.post(reverse('registration_register'),
+                                    data={'username': 'bob',
+                                          'email': 'bobe@example.com',
+                                          'password1': 'foo',
+                                          'password2': 'bar'},
+                                    **{'HTTP_ACCEPT':'application/json'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.content)['success'], False)
+        self.assertTrue(u"The two password fields didn't match." in json.loads(response.content)['errors'])
         self.assertEqual(len(mail.outbox), 0)
 
     def test_registration_view_closed(self):
@@ -103,6 +140,38 @@ class RegistrationViewTests(TestCase):
                                           'password1': 'swordfish',
                                           'password2': 'swordfish'})
         self.assertRedirects(response, closed_redirect)
+        self.assertEqual(RegistrationProfile.objects.count(), 0)
+
+        settings.REGISTRATION_OPEN = old_allowed
+
+    def test_registration_view_closed_json(self):
+        """
+        Any attempt to access the ``register`` view when registration
+        is closed fails and redirects.
+
+        """
+        def assert_closed(response):
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(json.loads(response.content)['success'], False)
+            self.assertTrue(u"Registration is closed." in json.loads(response.content)['errors'])
+
+        old_allowed = getattr(settings, 'REGISTRATION_OPEN', True)
+        settings.REGISTRATION_OPEN = False
+
+        closed_redirect = 'http://testserver%s' % reverse('registration_disallowed')
+
+        response = self.client.get(reverse('registration_register'),
+                                    **{'HTTP_ACCEPT':'application/json'})
+        assert_closed(response)
+
+        # Even if valid data is posted, it still shouldn't work.
+        response = self.client.post(reverse('registration_register'),
+                                    data={'username': 'alice',
+                                          'email': 'alice@example.com',
+                                          'password1': 'swordfish',
+                                          'password2': 'swordfish'},
+                                    **{'HTTP_ACCEPT':'application/json'})
+        assert_closed(response)
         self.assertEqual(RegistrationProfile.objects.count(), 0)
 
         settings.REGISTRATION_OPEN = old_allowed

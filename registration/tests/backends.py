@@ -48,6 +48,7 @@ class _MockRequestClient(Client):
             'wsgi.multiprocess': True,
             'wsgi.multithread':  False,
             'wsgi.run_once':     False,
+            'wsgi.input':        None,
             }
         environ.update(self.defaults)
         environ.update(request)

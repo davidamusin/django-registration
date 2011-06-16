@@ -3,10 +3,12 @@ Views which allow users to create and activate accounts.
 
 """
 
+import simplejson as json
 
 from django.shortcuts import redirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.http import HttpResponse
 
 from registration.backends import get_backend
 
@@ -175,9 +177,19 @@ def register(request, backend, success_url=None, form_class=None,
     argument.
     
     """
+    accept = request.META.get('HTTP_ACCEPT')
+    accept_json = bool(accept) and 'application/json' in accept
+    json_response = lambda data: HttpResponse(json.dumps(data), mimetype='application/json')
+    response_data = {'success':True}
+
     backend = get_backend(backend)
     if not backend.registration_allowed(request):
-        return redirect(disallowed_url)
+        if accept_json:
+            response_data['success'] = False
+            response_data['errors'] = [u'Registration is closed.']
+            return json_response(response_data)
+        else:
+            return redirect(disallowed_url)
     if form_class is None:
         form_class = backend.get_form_class(request)
 
@@ -185,20 +197,29 @@ def register(request, backend, success_url=None, form_class=None,
         form = form_class(data=request.POST, files=request.FILES)
         if form.is_valid():
             new_user = backend.register(request, **form.cleaned_data)
-            if success_url is None:
-                to, args, kwargs = backend.post_registration_redirect(request, new_user)
-                return redirect(to, *args, **kwargs)
+            if accept_json:
+                return json_response(response_data)
             else:
-                return redirect(success_url)
+                if success_url is None:
+                    to, args, kwargs = backend.post_registration_redirect(request, new_user)
+                    return redirect(to, *args, **kwargs)
+                else:
+                    return redirect(success_url)
     else:
         form = form_class()
-    
+
     if extra_context is None:
         extra_context = {}
     context = RequestContext(request)
     for key, value in extra_context.items():
         context[key] = callable(value) and value() or value
 
-    return render_to_response(template_name,
-                              {'form': form},
-                              context_instance=context)
+    if accept_json:
+        if bool(form.errors):
+            response_data['success'] = False
+            response_data['errors'] = [error for key in form.errors.keys() for error in form.errors[key]]
+        return json_response(response_data)
+    else:
+        return render_to_response(template_name,
+                                  {'form': form},
+                                  context_instance=context)
