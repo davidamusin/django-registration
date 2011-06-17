@@ -6,6 +6,7 @@ from registration.tests.backends import *
 from registration.tests.forms import *
 from registration.tests.models import *
 from registration.tests.views import *
+from registration.tests.auth_views import *
 
 
 class RegistrationVersionInfoTests(TestCase):
