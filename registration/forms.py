@@ -96,6 +96,30 @@ class RegistrationFormUniqueEmail(RegistrationForm):
         return self.cleaned_data['email']
 
 
+class RegistrationFormUsernameEmailMatch(RegistrationFormUniqueEmail):
+
+    username = forms.RegexField(regex=r'^\w+$',
+                                max_length=30,
+                                widget=forms.TextInput(attrs=attrs_dict),
+                                label=_("Username"),
+                                error_messages={'invalid': _("This value must contain only letters, numbers, underscores, at signs, plus signs, periods and dashes.")})
+
+
+    def clean_username(self):
+        """
+        Validate that the username is alphanumeric and is not already
+        in use. Have the username match the email address.
+        """
+        if 'username' in self.cleaned_data and 'email' in self.cleaned_data:
+            if self.cleaned_data['username'] != self.cleaned_data['email']:
+                raise forms.ValidationError(_("The username and email fields didn't match."))
+        try:
+            user = User.objects.get(username__iexact=self.cleaned_data['username'])
+        except User.DoesNotExist:
+            return self.cleaned_data['username']
+        raise forms.ValidationError(_("A user with that email address already exists."))
+
+
 class RegistrationFormNoFreeEmail(RegistrationForm):
     """
     Subclass of ``RegistrationForm`` which disallows registration with
