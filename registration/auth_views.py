@@ -2,14 +2,12 @@
 import simplejson as json
 
 from django.views.decorators.cache import never_cache
-from django.views.decorators.csrf import csrf_protect
 
 from django.http import HttpResponse
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import login as auth_views_login
 
-@csrf_protect
 @never_cache
 def login(request, authentication_form=AuthenticationForm,
           **kwargs):
