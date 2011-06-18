@@ -116,7 +116,7 @@ class RegistrationViewTests(TestCase):
                                     **{'HTTP_ACCEPT':'application/json'})
         self.assertEqual(response.status_code, 200)
         self.assertFalse(json.loads(response.content)['success'])
-        self.assertTrue(u"The two password fields didn't match." in json.loads(response.content)['errors'])
+        self.assertTrue(u"The two password fields didn't match." in json.loads(response.content)['errors'].get('__all__', None))
         self.assertEqual(len(mail.outbox), 0)
 
     def test_registration_view_closed(self):

@@ -218,7 +218,7 @@ def register(request, backend, success_url=None, form_class=None,
     if accept_json:
         response_data['success'] = False
         if bool(form.errors):
-            response_data['errors'] = [error for key in form.errors.keys() for error in form.errors[key]]
+            response_data['errors'] = form.errors
         return json_response(response_data)
 
     else:
