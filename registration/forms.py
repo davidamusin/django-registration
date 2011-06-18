@@ -98,7 +98,7 @@ class RegistrationFormUniqueEmail(RegistrationForm):
 
 class RegistrationFormUsernameEmailMatch(RegistrationFormUniqueEmail):
 
-    username = forms.RegexField(regex=r'^\w+$',
+    username = forms.RegexField(regex=r'^[\w@.+-]+$',
                                 max_length=30,
                                 widget=forms.TextInput(attrs=attrs_dict),
                                 label=_("Username"),
