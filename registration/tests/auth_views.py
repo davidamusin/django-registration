@@ -32,7 +32,7 @@ class AuthViewsJsonTestCase(AuthViewsTestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertFalse(json.loads(response.content)['success'])
-        self.assertTrue(u"Please enter a correct username and password. Note that both fields are case-sensitive." in json.loads(response.content)['errors'])
+        self.assertTrue(u"Please enter a correct username and password. Note that both fields are case-sensitive." in json.loads(response.content)['errors'].get('__all__', None))
         self.assertFalse(SESSION_KEY in self.client.session)
 
 class SigninTestCase(AuthViewsJsonTestCase):
