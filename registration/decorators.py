@@ -7,8 +7,8 @@ from django.http import HttpResponse
 class HttpResponseNotAuthorized(HttpResponse):
     status_code = 401
 
-    def __init__(self, request, *args, **kwargs):
-        HttpResponse.__init__(self, request, *args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        HttpResponse.__init__(self, *args, **kwargs)
         self['WWW-Authenticate'] = 'Cookie realm="%s"' % Site.objects.get_current().name
 
 def json_login_required(view_func):
