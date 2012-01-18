@@ -101,8 +101,11 @@ class RegistrationFormUsernameEmailMatch(RegistrationFormUniqueEmail):
     username = forms.RegexField(regex=r'^[\w@.+-]+$',
                                 max_length=30,
                                 widget=forms.TextInput(attrs=attrs_dict),
-                                label=_("Username"),
+                                label=_("E-mail"),
                                 error_messages={'invalid': _("This value must contain only letters, numbers, underscores, at signs, plus signs, periods and dashes.")})
+    email = forms.EmailField(widget=forms.TextInput(attrs=dict(attrs_dict,
+                                                               maxlength=75)),
+                             label=_("E-mail (again)"))
 
 
     def clean_username(self):
