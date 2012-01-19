@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.contrib.auth.models import User
@@ -58,7 +59,7 @@ class SimpleBackend(object):
         After registration, redirect to the user's account page.
         
         """
-        return (user.get_absolute_url(), (), {})
+        return (request.REQUEST.get(REDIRECT_FIELD_NAME, user.get_absolute_url()), (), {})
 
     def post_activation_redirect(self, request, user):
         raise NotImplementedError
