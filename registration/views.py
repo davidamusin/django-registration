@@ -5,6 +5,7 @@ Views which allow users to create and activate accounts.
 
 import simplejson as json
 
+from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.shortcuts import redirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -97,6 +98,7 @@ def activate(request, backend,
 def register(request, backend, success_url=None, form_class=None,
              disallowed_url='registration_disallowed',
              template_name='registration/registration_form.html',
+             redirect_field_name=REDIRECT_FIELD_NAME,
              extra_context=None):
     """
     Allow a new user to register an account.
@@ -223,5 +225,8 @@ def register(request, backend, success_url=None, form_class=None,
 
     else:
         return render_to_response(template_name,
-                                  {'form': form},
-                                  context_instance=context)
+                                    {
+                                        redirect_field_name: request.REQUEST.get(redirect_field_name, ''),
+                                        'form': form
+                                    },
+                                    context_instance=context)
